@@ -15,7 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+/**
+ * Modifications by Rainer Oberegger:
+ * 20200707: Choosed Resistors R220 for LEDs - Red steady on is way to bright - adopted the Code to have it flashing and a little dim
+ *           Implemented a Define to not flood the Console with Can Bus Errors
+ * 
+ */ 
   
+
 // these libraries are needed
 #include <Arduino.h>
 #include <SPI.h>
@@ -50,7 +58,7 @@
 // but may be helpful once for downward compatibility
 // if protocol changes for some reason
 #define XLB_Firmware_Version      100
-#define NOCANERRORMESSAGEVIASERIAL
+
 
 // MCP_CAN init values
 #define MCP_XTAL    MCP_8MHz
@@ -87,6 +95,8 @@ struct XLBCANMsg
   INT8U Data[8];
 };
 
+bool errorprinted = false;
+
 void setup()
 {
   // configure LED pins as output
@@ -112,9 +122,12 @@ START_INIT:
   else
   {
     //ERROR_LED_ON;
-    #ifndef NOCANERRORMESSAGEVIASERIAL
-    Serial.println(F("Error: CAN init failed. Check connection Arduino<-->CAN adapter"));
-    #endif
+    if ((errorprinted == false) && (millis() > 2000))
+    {
+      Serial.println(F("Error: CAN init failed. Check connection Arduino<-->CAN adapter"));
+      errorprinted = true;
+    }
+    
     for (uint8_t i = 0; i<20; i++)//Dirty flashing and dimming (LED with R220 is way to bright here) ;)
     {
       ERROR_LED_ON;
