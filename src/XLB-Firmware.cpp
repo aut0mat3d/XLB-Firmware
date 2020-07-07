@@ -50,7 +50,7 @@
 // but may be helpful once for downward compatibility
 // if protocol changes for some reason
 #define XLB_Firmware_Version      100
-
+#define NOCANERRORMESSAGEVIASERIAL
 
 // MCP_CAN init values
 #define MCP_XTAL    MCP_8MHz
@@ -62,9 +62,9 @@
 
 // used pins for MCP ChipSelect and Leds
 #define MCP_CS_SPI  10
-#define ERR_LED      9
-#define RX_LED       8
-#define TX_LED       7
+#define ERR_LED      8
+#define RX_LED       6
+#define TX_LED       4
 
 // Led On/Off macros
 #define RX_LED_ON       digitalWrite(RX_LED, HIGH)
@@ -111,9 +111,19 @@ START_INIT:
   }
   else
   {
-    ERROR_LED_ON;
+    //ERROR_LED_ON;
+    #ifndef NOCANERRORMESSAGEVIASERIAL
     Serial.println(F("Error: CAN init failed. Check connection Arduino<-->CAN adapter"));
-    delay(100);
+    #endif
+    for (uint8_t i = 0; i<20; i++)//Dirty flashing and dimming (LED with R220 is way to bright here) ;)
+    {
+      ERROR_LED_ON;
+      delayMicroseconds(300);
+      ERROR_LED_OFF;
+      delayMicroseconds(200);
+    }
+    delay(90);
+    
     goto START_INIT;
   }
   ERROR_LED_OFF;
