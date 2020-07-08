@@ -121,8 +121,8 @@ START_INIT:
   }
   else
   {
-    //ERROR_LED_ON;
-    if ((errorprinted == false) && (millis() > 2000))
+    //Print Error Message (only once)
+    if ((errorprinted == false) && (millis() > 2000))//2 Seconds to have Terminal on PC up
     {
       Serial.println(F("Error: CAN init failed. Check connection Arduino<-->CAN adapter"));
       errorprinted = true;
