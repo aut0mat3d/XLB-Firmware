@@ -27,9 +27,14 @@
 // these libraries are needed
 #include <Arduino.h>
 #include <SPI.h>
-#include <mcp_can.h>
-#include <mcp_can_dfs.h>
+//#include <mcp_can.h>
+//#include <mcp_can_dfs.h>
+#include <ESP32CAN.h>
+#include <CAN_config.h>
 
+const int rx_queue_size = 10;       // Receive Queue size
+
+//#define USELEDS
 
 #ifndef INT8U
 #define INT8U byte
@@ -69,7 +74,9 @@
 #define SER_TIMEOUT 500
 
 // used pins for MCP ChipSelect and Leds
-#define MCP_CS_SPI  10
+//#define MCP_CS_SPI  10
+
+#ifdef USELEDS
 #define ERR_LED      8
 #define RX_LED       6
 #define TX_LED       4
@@ -81,14 +88,23 @@
 #define TX_LED_OFF      digitalWrite(TX_LED, LOW)
 #define ERROR_LED_ON    digitalWrite(ERR_LED, HIGH)
 #define ERROR_LED_OFF   digitalWrite(ERR_LED, LOW)
+#else
+#define RX_LED_ON       __asm__ __volatile__("nop")
+#define RX_LED_OFF      __asm__ __volatile__("nop")
+#define TX_LED_ON       __asm__ __volatile__("nop")
+#define TX_LED_OFF      __asm__ __volatile__("nop")
+#define ERROR_LED_ON    __asm__ __volatile__("nop")
+#define ERROR_LED_OFF   __asm__ __volatile__("nop")
+#endif
 
 // create CAN instance, set CS pin
-MCP_CAN CAN(MCP_CS_SPI);
+//MCP_CAN CAN(MCP_CS_SPI);
+CAN_device_t CAN_cfg;               // CAN Config
 
 const
   char XLBPreamble[] = "CM";
 
-struct XLBCANMsg
+struct CANMsg
 {
   INT32U Id;
   INT8U Len;
@@ -100,21 +116,35 @@ bool errorprinted = false;
 void setup()
 {
   // configure LED pins as output
+  #ifdef USELEDS
   pinMode(ERR_LED,OUTPUT);
   pinMode(RX_LED,OUTPUT);
   pinMode(TX_LED,OUTPUT);
+  #endif
 
   // switch off the LEDs
   ERROR_LED_OFF;
   RX_LED_OFF;
   TX_LED_OFF;
   
-START_INIT:
+  CAN_cfg.speed = CAN_SPEED_125KBPS;
+  CAN_cfg.tx_pin_id = GPIO_NUM_5;
+  CAN_cfg.rx_pin_id = GPIO_NUM_4;
+  CAN_cfg.rx_queue = xQueueCreate(rx_queue_size, sizeof(CAN_frame_t));
+  
+
+//START_INIT:
   // init serial port
   Serial.begin(SER_SPEED);
   Serial.setTimeout(SER_TIMEOUT);
   
   // init can bus : baudrate, crystal
+  // Init CAN Module
+  ESP32Can.CANInit();
+  Serial.println(F("XLB Adapter ready!"));
+  /*//This is useless as we have CAN onboard and i do not find a proper Way (ATM) to check if we have a active CAN Connection
+    //Probably i should only check for Pin Levels? - to be determinated
+
   if (CAN_OK == CAN.begin(CAN_SPEED, MCP_XTAL))                  
   {
     Serial.println(F("XLB Adapter ready!"));
@@ -140,14 +170,16 @@ START_INIT:
     goto START_INIT;
   }
   ERROR_LED_OFF;
+  */
 }
+
 
 /******************** some  tools *****************************/                                                                                                                                                                                                           
 
 // init CANMsg structure
-void InitCANMsg ( XLBCANMsg* msg, INT32U canId, INT8U len, INT16U Register, INT16U Value=0 )
+void InitCANMsg ( CANMsg* msg, INT32U canId, INT8U len, INT16U Register, INT16U Value=0 )
 {
-  memset ( msg, 0, sizeof(XLBCANMsg));
+  memset ( msg, 0, sizeof(CANMsg));
   msg->Id = canId;
   msg->Len = len;
   msg->Data[0] = highByte(Register);
@@ -185,7 +217,7 @@ void printInt ( INT32U v, INT8U format )
 }
 
 // write CAN message details to serial port
-void LogMsgToSerial ( bool Tx, XLBCANMsg* msg, INT8U format )
+void LogMsgToSerial ( bool Tx, CANMsg* msg, INT8U format )
 {
   if (Tx)
     Serial.print ( F("->") );
@@ -193,7 +225,8 @@ void LogMsgToSerial ( bool Tx, XLBCANMsg* msg, INT8U format )
     Serial.print ( F("<-") );
   printInt ( msg->Id, format );
   printInt ( msg->Len, format );
-  for(INT8U i = 0; i<min(msg->Len,8); i++)
+  //for(INT8U i = 0; i<min(msg->Len,8); i++)
+  for(INT8U i = 0; i<min(msg->Len,(byte)8); i++)
   {
     printInt ( msg->Data[i], format );
   }
@@ -203,20 +236,20 @@ void LogMsgToSerial ( bool Tx, XLBCANMsg* msg, INT8U format )
 /******************** serial R/W CAN message *****************************/
 
 // send CAN message to serial in binary mode
-void SendMsgToSerial ( XLBCANMsg* msg )
+void SendMsgToSerial ( CANMsg* msg )
 {
   Serial.write(XLBPreamble);
-  Serial.write((byte*)&msg->Id, sizeof(XLBCANMsg));
+  Serial.write((byte*)&msg->Id, sizeof(CANMsg));
 }
 
 
 // read CAN message from serial in binary mode
-bool ReadMsgFromSerial ( XLBCANMsg* msg )
+bool ReadMsgFromSerial ( CANMsg* msg )
 {
   bool res = false;
   // skip, if there aren't enough bytes in the inbuffer
-  // this prevents read a XLBCANMsg incomplete and run into timeout
-  if (Serial.available()>=(long)sizeof(XLBCANMsg)+2)
+  // this prevents read a CANMsg incomplete and run into timeout
+  if (Serial.available()>=(long)sizeof(CANMsg)+2)
   {
     // sync to the 'CM' prefix. Read and therefore consume all incoming
     // (nonsens?) bytes until 'CM' is found. The following 13 byte are
@@ -226,8 +259,8 @@ bool ReadMsgFromSerial ( XLBCANMsg* msg )
     {
       if (Serial.read()==XLBPreamble[1])
       {
-        memset ( msg, 0, sizeof(XLBCANMsg));
-        res =Serial.readBytes((byte*)&msg->Id, sizeof(XLBCANMsg))==sizeof(XLBCANMsg);
+        memset ( msg, 0, sizeof(CANMsg));
+        res =Serial.readBytes((byte*)&msg->Id, sizeof(CANMsg))==sizeof(CANMsg);
       }
     }
   }
@@ -237,13 +270,13 @@ bool ReadMsgFromSerial ( XLBCANMsg* msg )
 /******************** CANbus R/W CAN message *****************************/
 
 // receive a CAN message from CAN bus into message structure
-bool ReadMsgFromCAN ( XLBCANMsg* msg )
+bool ReadMsgFromCAN ( CANMsg* msg )
 {
   bool res;
   
   RX_LED_ON;
   ERROR_LED_OFF;
-  memset ( msg, 0, sizeof(XLBCANMsg));
+  memset ( msg, 0, sizeof(CANMsg));
   res=(CAN.readMsgBufID(&msg->Id,&msg->Len, msg->Data)==CAN_OK);    // read data,  len: data length, buf: data buf
   if (!res)
     ERROR_LED_ON;
@@ -252,7 +285,7 @@ bool ReadMsgFromCAN ( XLBCANMsg* msg )
 }
 
 // send CAN messase to CAN bus
-bool SendMsgToCAN ( XLBCANMsg* msg )
+bool SendMsgToCAN ( CANMsg* msg )
 {
   bool res;
   
@@ -270,7 +303,7 @@ bool SendMsgToCAN ( XLBCANMsg* msg )
 // logs traffic on CAN bus to serial port
 bool LoggingLoop()
 {
-  XLBCANMsg msg;
+  CANMsg msg;
   INT8U format;
 
   if (toupper(Serial.read())=='D' )
@@ -305,7 +338,7 @@ bool LoggingLoop()
 // send a read message to CAN bus ( BionX specific )
 bool ReadRegister ( INT32U canId, INT8U Register )
 {
-  XLBCANMsg msg;
+  CANMsg msg;
   bool res = false;
 
   InitCANMsg ( &msg, canId, 2, Register );
@@ -349,7 +382,7 @@ bool ReadCmd()
 bool WriteRegister ( INT32U canId, INT8U Register, INT8U Value )
 {
   bool res = false;
-  XLBCANMsg msg;
+  CANMsg msg;
   InitCANMsg ( &msg, canId, 4, Register, Value );
   if (SendMsgToCAN ( &msg ))
   {
@@ -388,7 +421,7 @@ bool WriteCmd()
 
 bool GatewayLoop()
 {
-  XLBCANMsg msg;
+  CANMsg msg;
   Serial.println ( F("start gateway mode") );
   ClearSerialInBuffer();
   while(1)
@@ -451,7 +484,7 @@ bool PrintHelp()
 
 bool Test()
 {
-  XLBCANMsg msg;
+  CANMsg msg;
   InitCANMsg ( &msg, 0x10, 2, 0x74 );
   return SendMsgToCAN(&msg);
 }
