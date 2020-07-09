@@ -18,7 +18,7 @@
 
 /**
  * Modifications by Rainer Oberegger:
- * 20200707: Choosed Resistors R220 for LEDs - Red steady on is way to bright - adopted the Code to have it flashing and a little dim
+ * 20200707: Choosed Resistors R510 for LEDs - Red steady on is way to bright - adopted the Code to have it flashing and a little dim
  *           Implemented a Define to not flood the Console with Can Bus Errors
  * 
  */ 
