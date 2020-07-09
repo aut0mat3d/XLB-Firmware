@@ -129,6 +129,7 @@ START_INIT:
   if (CAN_OK == CAN.begin(CAN_SPEED, MCP_XTAL))                  
   {
     Serial.println(F("XLB Adapter ready!"));
+    Serial.println(F("Enter ? for Commands"));
   }
   else
   {
