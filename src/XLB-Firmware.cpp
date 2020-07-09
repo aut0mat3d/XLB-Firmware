@@ -61,7 +61,7 @@
 
 
 // MCP_CAN init values
-#define MCP_XTAL    MCP_8MHz
+#define MCP_XTAL    MCP_16MHz
 #define CAN_SPEED   CAN_125KBPS
 
 // Serial init values
@@ -104,10 +104,21 @@ void setup()
   pinMode(RX_LED,OUTPUT);
   pinMode(TX_LED,OUTPUT);
 
+  // switch on LEDs (Functional Test)
+  ERROR_LED_ON;
+  delay(100);
+  RX_LED_ON;
+  delay(100);
+  TX_LED_ON;
+  delay(100);
+
   // switch off the LEDs
   ERROR_LED_OFF;
+  delay(100);
   RX_LED_OFF;
+  delay(100);
   TX_LED_OFF;
+  delay(100);
   
 START_INIT:
   // init serial port
@@ -122,20 +133,22 @@ START_INIT:
   else
   {
     //Print Error Message (only once)
-    if ((errorprinted == false) && (millis() > 2000))//2 Seconds to have Terminal on PC up
+    if ((errorprinted == false) && (millis() > 1000))//1 Second to have Terminal on PC up
     {
       Serial.println(F("Error: CAN init failed. Check connection Arduino<-->CAN adapter"));
       errorprinted = true;
     }
     
-    for (uint8_t i = 0; i<20; i++)//Dirty flashing and dimming (LED with R220 is way to bright here) ;)
+    //Serial.println(F("Error: CAN init failed. Check connection Arduino<-->CAN adapter"));
+    
+    for (uint8_t i = 0; i<19; i++)//Dirty flashing and dimming (LED with R510 is way to bright here) ;)
     {
       ERROR_LED_ON;
-      delayMicroseconds(300);
+      delayMicroseconds(500);
       ERROR_LED_OFF;
-      delayMicroseconds(200);
+      delayMicroseconds(100);
     }
-    delay(90);
+    delay(80);
     
     goto START_INIT;
   }
