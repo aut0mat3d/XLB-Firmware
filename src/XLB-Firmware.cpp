@@ -48,11 +48,14 @@
 #endif
 
 // NodeId and register for slave mode
+#define ID_CONSOLE                  0x08
 #define ID_CONSOLE_MASTER           0x48
 #define REG_CONSOLE_STATUS_SLAVE    0xD1
 
 #define ID_BATTERY                  0x10
 #define REG_BATTERY_CONFIG_SHUTDOWN 0x25
+
+#define ID_MOTOR                    0x20
 
 // Firmware version. Recently not used
 // but may be helpful once for downward compatibility
@@ -129,7 +132,7 @@ START_INIT:
   if (CAN_OK == CAN.begin(CAN_SPEED, MCP_XTAL))                  
   {
     Serial.println(F("XLB Adapter ready!"));
-    Serial.println(F("Enter ? for Commands"));
+    //Serial.println(F("Enter ? for Commands"));
   }
   else
   {
