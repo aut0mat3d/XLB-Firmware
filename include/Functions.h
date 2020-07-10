@@ -1,6 +1,12 @@
 #ifndef Functions_h
 #define Functions_h
 #include <Globalvariables.h>
+
+/******************** print some usage hints to serial **************************/
+
+extern bool PrintHelp();
+
+
 /******************** Logging to serial *****************************/
 
 extern void printInt ( INT32U v, INT8U format );

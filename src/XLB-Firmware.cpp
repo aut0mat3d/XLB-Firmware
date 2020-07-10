@@ -10,12 +10,6 @@
 #include <CAN_Functions.h>
 
 
-
-
-
-
-
-
 void setup()
 {
   #ifdef USELEDS
@@ -76,25 +70,6 @@ START_INIT:
   }
   ERROR_LED_OFF;
 }
-
-
-
-/******************** print some usage hints to serial **************************/
-
-bool PrintHelp()
-{
-  Serial.println ( F("") );
-  Serial.println ( F("G                enter gateway mode. Transparent exchange messages between serial<-->CAN bus. Leave with Q") );
-  Serial.println ( F("L{D}             enter logging mode. With LD log values decimal, default is hex. Leave with Q") );
-  Serial.println ( F("R Id Reg         read register 'Reg' from CAN node 'Id'. Use decimal numbers.") );
-  Serial.println ( F("W Id Reg Value   write 'Value' into register 'Reg' on CAN node 'Id'. Use decimal numbers") );
-  Serial.println ( F("S                set bike to slave mode") );
-  Serial.println ( F("V                show firmware version") );
-  Serial.println ( F("O                shutdown system") );
-  Serial.println ( F("") );
-  return true;
-}
-
 
 
 /******************** main program loop **************************/
