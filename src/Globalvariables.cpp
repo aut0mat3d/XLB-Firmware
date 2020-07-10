@@ -4,17 +4,5 @@
 
 const char XLBPreamble[] = "CM";
 
-/*
-struct XLBCANMsg
-{
-  INT32U Id;
-  INT8U Len;
-  INT8U Data[8];
-};
-*/
-//extern XLBCANMsg obj = {3}; 
-
-
-
 bool errorprinted = false;
 
