@@ -102,13 +102,83 @@ bool ReadMsgFromSerial ( XLBCANMsg* msg )
 }
 
 
+bool processIncomingByte (byte inByte)
+{
+  bool res = false;
+  //DBGprintln(inByte,HEX);
+  switch (inByte)
+    {
+      case '?' :
+      res =PrintHelp();
+      break;
+
+      case 'V' :
+      if (input_pos == 0)
+      {      
+        res = ( Serial.println( XLB_Firmware_Version) > 0 );     
+      }
+      break;
+
+      case 'G': //Gateway Mode
+      if (input_pos == 0)
+      {
+        res = GatewayLoop();
+      }
+      break;
+
+      case 'L' :
+      res = LoggingLoop();
+      break;
+
+      case 'O' :
+      res = Shutdown();
+      break;
+
+    case 'S' :
+      res = SetToSlave();
+      break;
+
+      case 0x0D:   // '\r' carriage return
+      case '\n':   // end of text
+      input_line [input_pos] = 0;  // terminating null byte
+      
+      // terminator reached! process input_line here ...
+      //process_data (input_line,input_pos);
+      
+      // reset buffer for next time
+      input_pos = 0;  
+      break;
+
+      default:
+      // keep adding if not full ... allow for terminating null byte
+      if (input_pos < (MAX_INPUT - 1))
+        input_line [input_pos++] = inByte;
+      break;
+
+
+    }
+  
+  return res;
+}
+
+
 /******************** Serial Handling  **************************/
 bool handleserial()
 {
   bool res = false;
+
+  
+  while (Serial.available())
+  {
+    res = processIncomingByte (Serial.read ());
+  }
+  return true;
+  
+  
   unsigned char inchar = Serial.read();
   switch (toupper(inchar))
   {
+    break;
     case 'V' :
       res = ( Serial.println( XLB_Firmware_Version) > 0 );
       break;

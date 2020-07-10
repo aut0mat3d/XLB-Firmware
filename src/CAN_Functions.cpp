@@ -94,6 +94,85 @@ bool LoggingLoop()
   return true;
 }
 
+void clearresponsedata()
+{
+  for (uint8_t i = 0; i<8; i++)
+  {
+    responsedata[i] = 0x00;
+  }
+}
+
+/******************** interactive read command **************************/
+bool GetRegister ( INT32U canId, INT8U Register )
+{
+  clearresponsedata();
+  XLBCANMsg msg;
+  InitCANMsg ( &msg, canId, 2, Register );
+  if (SendMsgToCAN ( &msg ))
+  {
+    LogMsgToSerial ( true, &msg, HEX );
+    // todo: implement a wait loop with timeout
+    delay(100);
+    if (CAN.checkReceive()==CAN_MSGAVAIL)           // check if data coming
+    {
+      if (ReadMsgFromCAN ( &msg ))
+      {
+        //LogMsgToSerial ( false, &msg, HEX );
+        /**
+         *struct XLBCANMsg
+        {
+          INT32U Id;
+          INT8U Len;
+          INT8U Data[8];
+        };
+         */
+        DBGprintln("Parsed:");
+        DBGprint("Id:");
+        DBGprintln(msg.Id,HEX);
+        DBGprint("Len:");
+        DBGprintln(msg.Len);
+        DBGprint("Data:");
+        for(uint8_t i = 0; i < msg.Len; i++)
+        {
+          if (msg.Data[i] <10)
+          {
+            DBGprint("0");
+          }
+          DBGprint( msg.Data[i],HEX);
+          DBGprint(" ");
+        }
+        DBGprintln();
+
+        if (msg.Id == ID_CONSOLE_RESPONSE)//0x58 is ID BIB - adresses BIB 
+        {
+          DBGprintln("Response is ours");
+          for(uint8_t i = 0; i < msg.Len; i++)
+          {
+            responsedata[i] = msg.Data[i];//I know this can be done more convinient - but hey - i am a beginner
+          }
+          return true;
+
+        }
+
+        
+/*
+         printInt ( msg->Id, format );
+          printInt ( msg->Len, format );
+          for(INT8U i = 0; i<min(msg->Len,8); i++)
+          {
+            printInt ( msg->Data[i], format );
+          }
+          */
+         
+        //LogMsgToSerial ( false, &msg, HEX );
+        //res = true;
+      }
+    }
+  }
+  return false;
+
+}
+
 /******************** interactive read command **************************/
 
 // send a read message to CAN bus ( BionX specific )
@@ -131,6 +210,12 @@ bool ReadCmd()
     Register = Serial.parseInt();
     if (Register!=0)
     {
+      /*
+      DBGprint("canId:");
+      DBGprint(canId);
+      DBGprint(", Register:");
+      DBGprint(Register);
+      */
       return ReadRegister ( canId, Register );
     }
   }
@@ -214,7 +299,29 @@ bool GatewayLoop()
 
 bool SetToSlave()
 {
-  return WriteRegister ( ID_CONSOLE_MASTER, REG_CONSOLE_STATUS_SLAVE, 1 );
+  uint8_t errcnt = 0;
+  while (errcnt < 10)
+  {
+    DBGprint("Try:");
+    DBGprintln(errcnt);
+    WriteRegister ( ID_CONSOLE_SLAVE, REG_CONSOLE_STATUS_SLAVE, 1 );
+    //delay(100);
+    bool val = GetRegister ( ID_CONSOLE_SLAVE, REG_CONSOLE_STATUS_SLAVE );
+    if (val == true)//Received a Packet to BIB (us)
+    {
+      /* Thats what i got here:
+      Id:58
+      Len:4
+      Data:00 D1 00 01
+      */
+      if ((responsedata[3] == 0x01)) //am i doing right? this should indicate slave mode - who knows?
+      {
+        return true;
+      }
+    }
+    errcnt++;
+  }
+  return false;
 }
 
 /******************** shutdown system *******************************************/

@@ -17,6 +17,10 @@ extern XLBCANMsg Data[];
 
 extern bool errorprinted;
 
+extern uint8_t responsedata[];
+//-------- Serial Stuff ---------
+extern char input_line [];
+extern unsigned int input_pos;
 
 
 #endif

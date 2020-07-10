@@ -7,7 +7,8 @@
 // if protocol changes for some reason
 #define XLB_Firmware_Version      100
 
-//#define USELEDS //Uncomment if you want to use LEDs 
+#define USELEDS //Uncomment if you want to use LEDs 
+#define DEBUG
 
 
 // MCP_CAN init values
@@ -17,7 +18,15 @@
 // Serial init values
 #define SER_SPEED   115200
 #define SER_TIMEOUT 500
+#define MAX_INPUT 12    //Serial Buffer
 
+#ifdef DEBUG
+#define DBGprint(...) Serial.print(__VA_ARGS__)
+#define DBGprintln(...) Serial.println(__VA_ARGS__)
+#else
+#define DBGprint(...)//Dummy when not in Debug - so we can have defines forgotten without a Hassle
+#define DBGprintln(...)
+#endif
 
 #ifndef INT8U
 #define INT8U byte
