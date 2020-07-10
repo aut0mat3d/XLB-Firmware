@@ -14,6 +14,17 @@ MCP_CAN CAN(MCP_CS_SPI);
 
 #include <Globalvariables.h>
 
+//const char XLBPreamble[] = "CM";
+
+struct XLBCANMsg
+{
+  INT32U Id;
+  INT8U Len;
+  INT8U Data[8];
+};
+
+//bool errorprinted = false;
+
 void setup()
 {
   #ifdef USELEDS
