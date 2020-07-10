@@ -1,6 +1,14 @@
 #ifndef CANFunctions_h
 #define CANFunctions_h
 
+#include <mcp_can.h>
+#include <mcp_can_dfs.h>
+
+#ifndef CANINSTANCEDONE
+// create CAN instance, set CS pin
+MCP_CAN CAN(MCP_CS_SPI);
+#define CANINSTANCEDONE
+#endif
 
 /******************** some  tools *****************************/                                                                                                                                                                                                           
 

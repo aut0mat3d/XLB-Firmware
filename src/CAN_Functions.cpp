@@ -8,7 +8,9 @@
 /******************** some  tools *****************************/                                                                                                                                                                                                           
 
 // init CANMsg structure
-void InitCANMsg ( XLBCANMsg* msg, INT32U canId, INT8U len, INT16U Register, INT16U Value=0 )
+//void InitCANMsg ( XLBCANMsg* msg, INT32U canId, INT8U len, INT16U Register, INT16U Value=0 )
+void InitCANMsg ( XLBCANMsg* msg, INT32U canId, INT8U len, INT16U Register, INT16U Value)
+//Value = 0
 {
   memset ( msg, 0, sizeof(XLBCANMsg));
   msg->Id = canId;
@@ -19,12 +21,7 @@ void InitCANMsg ( XLBCANMsg* msg, INT32U canId, INT8U len, INT16U Register, INT1
   msg->Data[3] = lowByte(Value);
 }
 
-// waste any data in serial rx buffer
-void ClearSerialInBuffer()
-{
-  while (Serial.available())
-    Serial.read();  
-}
+
 
 
 /******************** CANbus R/W CAN message *****************************/

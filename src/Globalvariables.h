@@ -1,6 +1,8 @@
 #ifndef globalvariables_h
 #define globalvariables_h
 
+
+
 extern const char XLBPreamble[];
 
 struct XLBCANMsg

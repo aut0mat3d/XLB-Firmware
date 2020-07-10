@@ -9,6 +9,7 @@ extern void printInt ( INT32U v, INT8U format );
 // write CAN message details to serial port
 extern void LogMsgToSerial ( bool Tx, XLBCANMsg* msg, INT8U format );
 
+extern void ClearSerialInBuffer();
 
 /******************** serial R/W CAN message *****************************/
 

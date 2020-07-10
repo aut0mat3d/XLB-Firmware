@@ -42,6 +42,13 @@ void LogMsgToSerial ( bool Tx, XLBCANMsg* msg, INT8U format )
   Serial.println ();
 }
 
+// waste any data in serial rx buffer
+void ClearSerialInBuffer()
+{
+  while (Serial.available())
+    Serial.read();  
+}
+
 /******************** serial R/W CAN message *****************************/
 
 // send CAN message to serial in binary mode

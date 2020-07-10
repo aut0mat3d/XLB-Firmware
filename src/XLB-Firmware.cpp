@@ -2,16 +2,14 @@
 // these libraries are needed
 #include <Arduino.h>
 #include <SPI.h>
-#include <mcp_can.h>
-#include <mcp_can_dfs.h>
+
 
 #include <Defines.h>
 #include <Functions.h>
+#include <CAN_Functions.h>
 
 
 
-// create CAN instance, set CS pin
-MCP_CAN CAN(MCP_CS_SPI);
 
 #include <Globalvariables.h>
 
