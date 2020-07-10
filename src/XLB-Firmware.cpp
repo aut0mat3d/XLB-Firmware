@@ -76,53 +76,12 @@ START_INIT:
 
 void loop()
 {
-  unsigned char inchar;
-  bool res;
+  //bool res;
   
   if (Serial.available()>0)
   {
-    inchar = Serial.read();
-    switch (toupper(inchar))
-    {
-      case 'V' :
-        res = ( Serial.println( XLB_Firmware_Version) > 0 );
-        break;
-      
-      case 'G' :
-        res = GatewayLoop();
-        break;
-        
-      case 'L' :
-        res = LoggingLoop();
-        break;
+    bool res = handleserial();
 
-      case 'R' :
-        res = ReadCmd();
-        break;
-        
-      case 'W' :
-        res = WriteCmd();
-        break;
-
-      case '?' :
-        res =PrintHelp();
-        break;
-
-      case 'O' :
-        res = Shutdown();
-        break;
-
-      case 'S' :
-        res = SetToSlave();
-        break;
-/*        
-      case 'T' :
-        res = Test();
-        break;
-*/
-      default :
-        res = false;
-    }
     if (!res)
       Serial.println(F("error"));
     ClearSerialInBuffer();

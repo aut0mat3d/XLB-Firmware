@@ -3,6 +3,7 @@
 #include <Globalvariables.h>
 #include <CAN-Registers.h>
 #include <Functions.h>
+#include <CAN_Functions.h>
 
 
 /******************** print some usage hints to serial **************************/
@@ -96,6 +97,56 @@ bool ReadMsgFromSerial ( XLBCANMsg* msg )
         res =Serial.readBytes((byte*)&msg->Id, sizeof(XLBCANMsg))==sizeof(XLBCANMsg);
       }
     }
+  }
+  return res;
+}
+
+
+/******************** Serial Handling  **************************/
+bool handleserial()
+{
+  bool res = false;
+  unsigned char inchar = Serial.read();
+  switch (toupper(inchar))
+  {
+    case 'V' :
+      res = ( Serial.println( XLB_Firmware_Version) > 0 );
+      break;
+    
+    case 'G' :
+      res = GatewayLoop();
+      break;
+      
+    case 'L' :
+      res = LoggingLoop();
+      break;
+
+    case 'R' :
+      res = ReadCmd();
+      break;
+      
+    case 'W' :
+      res = WriteCmd();
+      break;
+
+    case '?' :
+      res =PrintHelp();
+      break;
+
+    case 'O' :
+      res = Shutdown();
+      break;
+
+    case 'S' :
+      res = SetToSlave();
+      break;
+/*        
+    case 'T' :
+      res = Test();
+      break;
+*/
+    default :
+      res = false;
   }
   return res;
 }

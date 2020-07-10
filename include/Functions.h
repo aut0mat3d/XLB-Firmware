@@ -27,5 +27,8 @@ extern void SendMsgToSerial ( XLBCANMsg* msg );
 extern bool ReadMsgFromSerial ( XLBCANMsg* msg );
 
 
+/******************** Serial Handling  **************************/
+extern bool handleserial();
+
 
 #endif
