@@ -3,10 +3,17 @@
 
 extern const char XLBPreamble[];
 
-//extern struct XLBCANMsg Id; 
-//extern struct XLBCANMsg Len; 
-//extern struct XLBCANMsg Data[]; 
-//extern struct XLBCANMsg;
+struct XLBCANMsg
+{
+  INT32U Id;
+  INT8U Len;
+  INT8U Data[8];
+};
+
+extern XLBCANMsg Id; 
+extern XLBCANMsg Len; 
+extern XLBCANMsg Data[]; 
+//extern XLBCANMsg;
 
 /*
 extern  XLBCANMsg Id; 

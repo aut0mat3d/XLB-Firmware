@@ -17,12 +17,7 @@ MCP_CAN CAN(MCP_CS_SPI);
 //const char XLBPreamble[] = "CM";
 
 /*DIESES STRUCT SOLL IN DIE GLOBALVARIABLES*/
-struct XLBCANMsg
-{
-  INT32U Id;
-  INT8U Len;
-  INT8U Data[8];
-};
+
 
 
 //bool errorprinted = false;
