@@ -11,8 +11,9 @@ struct XLBCANMsg
   INT8U Len;
   INT8U Data[8];
 };
-XLBCANMsg obj = {3}; 
 */
+//extern XLBCANMsg obj = {3}; 
+
 
 
 bool errorprinted = false;
