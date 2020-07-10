@@ -5,6 +5,10 @@
 #include <CAN-Registers.h>
 #include <CAN_Functions.h>
 
+
+// create CAN instance, set CS pin
+MCP_CAN CAN(MCP_CS_SPI);
+
 /******************** some  tools *****************************/                                                                                                                                                                                                           
 
 // init CANMsg structure
