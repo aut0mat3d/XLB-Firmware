@@ -1,28 +1,3 @@
-// CANUSB.INO
-// Copyright (C) 2018 Thorsten Schmidt (tschmidt@ts-soft.de)
-//     www.ts-soft.de
-
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-/**
- * Modifications by Rainer Oberegger:
- * 20200707: Choosed Resistors R510 for LEDs - Red steady on is way to bright - adopted the Code to have it flashing and a little dim
- *           Implemented a Define to not flood the Console with Can Bus Errors
- * 
- */ 
-  
 
 // these libraries are needed
 #include <Arduino.h>
@@ -30,82 +5,23 @@
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
 
-
-#ifndef INT8U
-#define INT8U byte
-#endif
-
-#ifndef INT16U
-#define INT16U word
-#endif
-
-#ifndef INT32U
-#define INT32U unsigned long
-#endif
-
-#ifndef INT64U
-#define INT64U int64_t 
-#endif
-
-// NodeId and register for slave mode
-#define ID_CONSOLE                  0x08
-#define ID_CONSOLE_MASTER           0x48
-#define REG_CONSOLE_STATUS_SLAVE    0xD1
-
-#define ID_BATTERY                  0x10
-#define REG_BATTERY_CONFIG_SHUTDOWN 0x25
-
-#define ID_MOTOR                    0x20
-
-// Firmware version. Recently not used
-// but may be helpful once for downward compatibility
-// if protocol changes for some reason
-#define XLB_Firmware_Version      100
+#include <Defines.h>
 
 
-// MCP_CAN init values
-#define MCP_XTAL    MCP_16MHz
-#define CAN_SPEED   CAN_125KBPS
-
-// Serial init values
-#define SER_SPEED   115200
-#define SER_TIMEOUT 500
-
-// used pins for MCP ChipSelect and Leds
-#define MCP_CS_SPI  10
-#define ERR_LED      8
-#define RX_LED       6
-#define TX_LED       4
-
-// Led On/Off macros
-#define RX_LED_ON       digitalWrite(RX_LED, HIGH)
-#define RX_LED_OFF      digitalWrite(RX_LED, LOW)
-#define TX_LED_ON       digitalWrite(TX_LED, HIGH)
-#define TX_LED_OFF      digitalWrite(TX_LED, LOW)
-#define ERROR_LED_ON    digitalWrite(ERR_LED, HIGH)
-#define ERROR_LED_OFF   digitalWrite(ERR_LED, LOW)
 
 // create CAN instance, set CS pin
 MCP_CAN CAN(MCP_CS_SPI);
 
-const
-  char XLBPreamble[] = "CM";
-
-struct XLBCANMsg
-{
-  INT32U Id;
-  INT8U Len;
-  INT8U Data[8];
-};
-
-bool errorprinted = false;
+#include <Globalvariables.h>
 
 void setup()
 {
+  #ifdef USELEDS
   // configure LED pins as output
   pinMode(ERR_LED,OUTPUT);
   pinMode(RX_LED,OUTPUT);
   pinMode(TX_LED,OUTPUT);
+  #endif
 
   // switch on LEDs (Functional Test)
   ERROR_LED_ON;
